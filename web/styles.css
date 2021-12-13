@@ -1,7 +1,11 @@
 html, body {
     margin: 0;
-    padding: 0;
+    padding: 10px;
     overflow-x: hidden;
+}
+
+.header {
+    text-align: center;
 }
 
 button {
@@ -9,16 +13,29 @@ button {
     padding-bottom: 15px;
 }
 
+#conn_state {
+    text-align: center;
+    margin: 10px;
+}
+
 .inputs {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
-.inputs > div {
-    border: 1px solid black;
-    padding: 2px;
-    background-color: gray;
-}
+    .inputs > div {
+        border: 1px solid black;
+        padding: 2px;
+        /* background-color: gray; */
+        color: gray;
+        font-weight: bold;
+    }
+    .inputs > div.active {
+        color: green;
+    }
+    .inputs > div.passive {
+        color: chocolate;
+    }
 
 .debug {
     position: absolute;

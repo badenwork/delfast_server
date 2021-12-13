@@ -23,10 +23,12 @@ document.querySelector('button#connect').addEventListener('click', event => {
 //     delfast_bt.writeCommand(data);
 // });
 
+if(0) {
 document.querySelector('button#inspect').addEventListener('click', event => {
     console.log("Inspect BLE");
     inspectBle();
 });
+}
 
 const BT_INPUT_STATE_HORN = 0;
 const BT_INPUT_STATE_BREAK = 1;
@@ -47,7 +49,8 @@ const BT_STATE_GUARD = 12;
 function set_state(state, id, bit)
 {
     // document.querySelector('#in_' + id).innerHTML = (state & (1<<bit)) ? "+" : "-";
-    document.querySelector('#in_' + id).style = "background-color: "+ ((state & (1<<bit)) ? "green" : "red") +";";
+    // document.querySelector('#in_' + id).style = "background-color: "+ ((state & (1<<bit)) ? "green" : "red") +";";
+    document.querySelector('#in_' + id).className = (state & (1<<bit)) ? "active" : "passive";
 }
 
 function handleMeasurement(measurement) {
