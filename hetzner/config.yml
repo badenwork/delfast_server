@@ -1,0 +1,20 @@
+users:
+  - name: baden
+    groups: users, admin
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+packages:
+    - ufw
+    - mc
+package_update: true
+package_upgrade: true
+runcmd:
+  - ufw default allow outgoing
+  - ufw default deny incoming
+  - ufw allow 22
+  - ufw allow 80
+  - ufw allow 8000
+  - ufw allow 5555
+  - ufw allow 5556
+  - systemctl enable ufw
+  - systemctl start ufw

@@ -1,0 +1,15 @@
+%% Feel free to use, reuse and abuse the code in this file.
+
+{application, delfast_server, [
+	{description, "Delfast PC-001 TCP test server."},
+	{vsn, "1"},
+	{modules, []},
+	{registered, [delfast_server_sup]},
+	{applications, [
+		kernel,
+		stdlib,
+		ranch
+	]},
+	{mod, {delfast_server_app, []}},
+	{env, []}
+]}.
