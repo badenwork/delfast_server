@@ -1,10 +1,8 @@
 import './style.css'
 
-
-
 import Delfast from './delfast';
 const delfast = new Delfast();
-console.log("Delfast=", delfast);
+// console.log("Delfast=", delfast);
 
 document.querySelector('button#connect').addEventListener('click', async () => {
     console.log("Connect...");
@@ -27,6 +25,21 @@ document.querySelector('button#connect').addEventListener('click', async () => {
         document.querySelector('.control').style = "display: none";
     }
 });
+
+document.querySelector('button#get_session_key').addEventListener('click', async () => {
+    delfast.getSessionKey();
+});
+
+document.querySelector('button#disconnect').addEventListener('click', async () => {
+    delfast.disconnect();
+});
+
+/*
+(async () => {
+    const devices = await delfast.loadPaired();
+    console.log("devices", devices);
+})();
+*/
 
 const BT_INPUT_STATE_HORN = 0;
 const BT_INPUT_STATE_BREAK = 1;
@@ -52,7 +65,7 @@ function set_state(state, id, bit)
 }
 
 function handleMeasurement(measurement) {
-    console.log("handleMeasurement()", measurement);
+    // console.log("handleMeasurement()", measurement);
     measurement.addEventListener('characteristicvaluechanged', event => {
         // console.log("characteristicvaluechanged", event);
         var {state} = delfast.parseValue(event.target.value);
@@ -80,7 +93,7 @@ function handleMeasurement(measurement) {
 }
 
 function handleDebug(debug) {
-    console.log("handleDebug()", debug);
+    // console.log("handleDebug()", debug);
     debug.addEventListener('characteristicvaluechanged', event => {
         console.log("Debug value changed", event.target.value);
     });
