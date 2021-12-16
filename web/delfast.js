@@ -79,16 +79,33 @@ export default class Delfast {
       return this._stopNotifications(this.CHARACTERISTIC_DEBUG);
     }
     parseValue(value) {
-        console.log("parseValue", value);
         // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
-        value = value.buffer ? value : new DataView(value);
-        const state = value.getUint32(0, /*littleEndian=*/true)
+        const v = value.buffer ? value : new DataView(value);
+        console.log("parseValue", v);
+        const status = v.getUint8(5);
+        return {
+            version: v.getUint8(0),
+            counter: v.getUint8(1) + v.getUint8(2)*256 + v.getUint8(3)*256*256 + v.getUint8(4)*256*256*256,
+            status: {
+                charge: status & (1 << 7),
+                drive: status & (1 << 6),
+                block: status & (1 << 5),
+                guard: status & (1 << 4),
+                panic: status & (1 << 3),
+            },
+            speed: v.getUint8(6),
+            power: v.getUint8(7),
+            odometer: v.getUint8(8) + v.getUint8(9)*256 + v.getUint8(10)*256*256 + v.getUint8(11)*256*256*256,
+            auth_tag: new DataView(v.buffer, 12),
+            // auth_tag: [],
+        };
+        // const state = value.getUint32(0, /*littleEndian=*/true)
         // const x = value.getUint16(0, /*littleEndian=*/true)
         // const y = value.getUint16(2, /*littleEndian=*/true)
         // const z = value.getUint16(4, /*littleEndian=*/true)
         // let result = {x, y, z};
-        let result = {state};
-        return result;
+        // let result = {state};
+        // return result;
     }
     writeCommand(value) {
         console.log("writeValue", value);

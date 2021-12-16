@@ -57,33 +57,35 @@ const BT_STATE_PANIC = 10;
 const BT_STATE_DRIVE = 11;
 const BT_STATE_GUARD = 12;
 
-function set_state(state, id, bit)
+function set_state(cond, id)
 {
     // document.querySelector('#in_' + id).innerHTML = (state & (1<<bit)) ? "+" : "-";
     // document.querySelector('#in_' + id).style = "background-color: "+ ((state & (1<<bit)) ? "green" : "red") +";";
-    document.querySelector('#in_' + id).className = (state & (1<<bit)) ? "active" : "passive";
+    document.querySelector('#in_' + id).className = cond ? "active" : "passive";
 }
 
 function handleMeasurement(measurement) {
     // console.log("handleMeasurement()", measurement);
     measurement.addEventListener('characteristicvaluechanged', event => {
         // console.log("characteristicvaluechanged", event);
-        var {state} = delfast.parseValue(event.target.value);
-        set_state(state, "horn", BT_INPUT_STATE_HORN);
-        set_state(state, "break", BT_INPUT_STATE_BREAK);
-        set_state(state, "turn_l", BT_INPUT_STATE_TURN_L);
-        set_state(state, "turn_r", BT_INPUT_STATE_TURN_R);
-        set_state(state, "h_beam", BT_INPUT_STATE_H_BEAM);
-        set_state(state, "l_beam", BT_INPUT_STATE_L_BEAM);
-        set_state(state, "h_speed", BT_INPUT_STATE_H_SPEED);
-        set_state(state, "l_speed", BT_INPUT_STATE_L_SPEED);
-        set_state(state, "throttle", BT_INPUT_STATE_THROTTLE);
-        set_state(state, "pas", BT_INPUT_STATE_PAS);
+        const state = delfast.parseValue(event.target.value);
+        const inputs = state.odometer;
+        // Debug inputs
+        set_state(inputs & (1 << BT_INPUT_STATE_HORN), "horn");
+        set_state(inputs & (1 << BT_INPUT_STATE_BREAK), "break");
+        set_state(inputs & (1 << BT_INPUT_STATE_TURN_L), "turn_l");
+        set_state(inputs & (1 << BT_INPUT_STATE_TURN_R), "turn_r");
+        set_state(inputs & (1 << BT_INPUT_STATE_H_BEAM), "h_beam");
+        set_state(inputs & (1 << BT_INPUT_STATE_L_BEAM), "l_beam");
+        set_state(inputs & (1 << BT_INPUT_STATE_H_SPEED), "h_speed");
+        set_state(inputs & (1 << BT_INPUT_STATE_L_SPEED), "l_speed");
+        set_state(inputs & (1 << BT_INPUT_STATE_THROTTLE), "throttle");
+        set_state(inputs & (1 << BT_INPUT_STATE_PAS), "pas");
 
         // Not a inputs, but place here while a better time
-        set_state(state, "panic", BT_STATE_PANIC);
-        set_state(state, "drive", BT_STATE_DRIVE);
-        set_state(state, "guard", BT_STATE_GUARD);
+        set_state(state.status.panic, "panic");
+        set_state(state.status.drive, "drive");
+        set_state(state.status.guard, "guard");
         // console.log("xyz", x, y, z);
         // Log("X="+x+" Y="+y+" Z="+z);
         // statusText.innerHTML = heartRateMeasurement.heartRate + ' &#x2764;';
