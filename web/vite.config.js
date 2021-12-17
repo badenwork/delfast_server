@@ -1,6 +1,11 @@
 // vite.config.js
 import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+
 export default defineConfig({
+    // optimizeDeps: {
+	// 	exclude: [ "@fortawesome/fontawesome-free" ]
+	// },
     // config options
     build: {
         sourcemap: true,
@@ -8,5 +13,15 @@ export default defineConfig({
         target: 'esnext',
         // Leave minification up to applications.
         minify: false,
-    }
+    },
+    plugins: [
+        VitePWA({
+            registerType: 'autoUpdate',
+/*            strategies: 'injectManifest',
+            workbox: {
+                cleanupOutdatedCaches: false,
+                sourcemap: true
+            }*/
+        })
+    ]
 });

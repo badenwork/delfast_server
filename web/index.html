@@ -8,21 +8,21 @@
   </head>
   <body>
     <div id="app">
-        <h1>Delfast bike</h1>
+        <h1>Delfast bike PC</h1>
         <button type="button" name="button" id="connect">Connect</button>
+        <button type="button" name="button" id="disconnect" style="display: none">Disconnect</button>
         <div id="conn_state">Not connected</div>
 
         <div class="control" style="display: none">
             <!-- <button id="test">Test</button> -->
-            <button type="button" name="button" id="get_session_key">Get session_key</button>
             <div class="state">
                 <div class="inputs">
-                    <div id="in_horn">Horn</div>
+                    <div id="in_horn"><i class="fas fa-bullhorn"></i></div>
                     <div id="in_break">Break</div>
-                    <div id="in_turn_l">Turn L</div>
-                    <div id="in_turn_r">Turn R</div>
-                    <div id="in_h_beam">H Beam</div>
-                    <div id="in_l_beam">L Beam</div>
+                    <div id="in_turn_l"><i class="fas fa-arrow-circle-left"></i></div>
+                    <div id="in_turn_r"><i class="fas fa-arrow-circle-right"></i></div>
+                    <div id="in_h_beam">H <i class="fas fa-lightbulb"></i></div>
+                    <div id="in_l_beam">L <i class="fas fa-lightbulb"></i></div>
                     <div id="in_h_speed">H Speed</div>
                     <div id="in_l_speed">L Speed</div>
                     <div id="in_throttle">Throttle</div>
@@ -30,12 +30,24 @@
 
                     <!-- // Not a inputs, but place here while a better time -->
                     <div id="in_panic">Panic</div>
-                    <div id="in_drive">Drive</div>
+                    <div id="in_drive"><i class="fas fa-biking"></i></div>
                     <div id="in_guard">Guard</div>
 
                 </div>
             </div>
-            <button type="button" name="button" id="disconnect">Disconnect</button>
+            <div class="controls">
+                <button type="button" name="button" id="drive"><i class="fas fa-biking fa-5x"></i></button>
+                <button type="button" name="button" id="idle"><i class="fas fa-parking fa-5x"></i></button>
+                <button type="button" name="button" id="force"><i class="fab fa-ups fa-5x"></i></button>
+            </div>
+
+            <div style="margin-top: 100px;">
+                <p>Debug functions. Do not touch please:</p>
+                <button type="button" name="button" id="get_session_key">Get session_key</button>
+                <button type="button" name="button" id="read_status">Read status</button>
+            </div>
+
+
         </div>
 
     </div>

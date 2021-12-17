@@ -2,6 +2,12 @@ import Crc32 from './crc32';
 
 const VERSION = 0xA0;
 const CMD_GET_SESSION_KEY = 0x80;
+const CMD_SET_DRIVE_MODE = 0x90;
+
+
+// Test security data.
+const test_cc = "addb2c0ad42ec3cf20dadd52065a4f70bfec4233ffd0da682836285fdce93119";
+const IDX = 123;
 
 export default class Delfast {
     // super();
@@ -87,11 +93,11 @@ export default class Delfast {
             version: v.getUint8(0),
             counter: v.getUint8(1) + v.getUint8(2)*256 + v.getUint8(3)*256*256 + v.getUint8(4)*256*256*256,
             status: {
-                charge: status & (1 << 7),
-                drive: status & (1 << 6),
-                block: status & (1 << 5),
-                guard: status & (1 << 4),
-                panic: status & (1 << 3),
+                charge: status & (1 << 0),
+                drive: status & (1 << 1),
+                block: status & (1 << 2),
+                guard: status & (1 << 3),
+                panic: status & (1 << 4),
             },
             speed: v.getUint8(6),
             power: v.getUint8(7),
@@ -107,6 +113,21 @@ export default class Delfast {
         // let result = {state};
         // return result;
     }
+    async readStatus() {
+        console.log("readStatus");
+        const v = await this._readCharacteristicValue(this.CHARACTERISTIC_STATUS);
+        console.log("v=", v);
+        return v;
+        // TODO: Parse value
+
+            // .then(r => {
+            //     return r;
+            // })
+            // .catch(error => {
+            //     console.log("delfast_bt.readValue:error", error);
+            // });
+    }
+
     writeCommand(value) {
         console.log("writeValue", value);
         this._writeCharacteristicValue(this.CHARACTERISTIC_COMMAND, value)
@@ -120,8 +141,6 @@ export default class Delfast {
 
     // Отримання session_key
     getSessionKey() {
-        const test_cc = "addb2c0ad42ec3cf20dadd52065a4f70bfec4233ffd0da682836285fdce93119";
-        const IDX = 123;
 
         // Для отримання ключа session_key мобільний записує в командний атрибут пакет реєстрації (0x80). 
         //
@@ -136,20 +155,20 @@ export default class Delfast {
 
         const buffer = new ArrayBuffer(23);
         const view = new DataView(buffer);
-        view.setInt8(0, 0x1A /*VERSION*/);               // version
-        view.setInt8(1, 0x40 /*CMD_GET_SESSION_KEY*/);   // type
+        view.setInt8(0, VERSION);               // version
+        view.setInt8(1, CMD_GET_SESSION_KEY);   // type
         view.setInt8(2, IDX);                   // key_idx
 
         const key_check_view = new DataView(buffer, 3);
         let xor_mask = new Uint8Array([0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62, 0x69, 0x6b, 0x65, 0x73]);
 
         // FAKE
-        // let auth_tag = new Uint8Array(
-        //     [0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,
-        //         0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,]
-        // );
+        let auth_tag = new Uint8Array(
+            [0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,
+                0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,]
+        );
         // For debuggint MODEM_CMD_DIRECT_DEFINE
-        const auth_tag = (new TextEncoder()).encode("\r\n+WRITE:1,,,,,,");
+        // const auth_tag = (new TextEncoder()).encode("\r\n+WRITE:1,,,,,,");
 
         // nonce = crc32(key) + rnd + session_id xor 64 65 6c 66 61 73 74 62 69 6b 65 73
 
@@ -171,6 +190,25 @@ export default class Delfast {
 
     }
 
+    sendSetToDriveState(flags) {
+        console.log("Send: setToForce");
+        const buffer = new ArrayBuffer(23);
+        const view = new DataView(buffer);
+        view.setInt8(0, VERSION);               // version
+        view.setInt8(1, CMD_SET_DRIVE_MODE);    // type
+        view.setInt8(2, IDX);                   // key_idx
+        // const flags = 4;                        // 1 сигналізація включена  2 autolock   4 двигун
+        view.setInt8(3, flags);                 // flags
+
+        // FAKE
+        let auth_tag = new Uint8Array(
+            [0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,
+                0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,]
+        );
+        new Uint8Array(buffer).set(auth_tag, 7);
+
+        this.writeCommand(buffer);
+    }
 
     // Private
     _cacheCharacteristic(service, characteristicUuid) {

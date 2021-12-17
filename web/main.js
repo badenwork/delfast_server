@@ -1,8 +1,23 @@
 import './style.css'
+import { registerSW } from 'virtual:pwa-register'
+import "@fortawesome/fontawesome-free/css/all.css";
+import "@fortawesome/fontawesome-free/js/all.js";
 
 import Delfast from './delfast';
 const delfast = new Delfast();
 // console.log("Delfast=", delfast);
+
+// import { precacheAndRoute } from 'workbox-precaching'
+// precacheAndRoute(self.__WB_MANIFEST)
+
+const updateSW = registerSW({
+  onNeedRefresh() {
+      console.log("onNeedRefresh");
+  },
+  onOfflineReady() {
+      console.log("onOfflineReady");
+  },
+});
 
 document.querySelector('button#connect').addEventListener('click', async () => {
     console.log("Connect...");
@@ -10,6 +25,7 @@ document.querySelector('button#connect').addEventListener('click', async () => {
         const device = await delfast.connect( ()=> {
             document.querySelector('#conn_state').innerHTML = "Disconnected";
             document.querySelector('.control').style = "display: none";
+            document.querySelector('button#disconnect').style = "display: none";
         });
         console.log("Connected.");
 
@@ -18,16 +34,33 @@ document.querySelector('button#connect').addEventListener('click', async () => {
 
         document.querySelector('#conn_state').innerHTML = "Connected";
         document.querySelector('.control').style = "";
+        document.querySelector('button#disconnect').style = "";
 
     } catch(error) {
         console.log("delfast_bt.connect:error", error);
         document.querySelector('#conn_state').innerHTML = "Connection error";
         document.querySelector('.control').style = "display: none";
+        document.querySelector('button#disconnect').style = "display: none";
     }
 });
 
 document.querySelector('button#get_session_key').addEventListener('click', async () => {
     delfast.getSessionKey();
+});
+
+document.querySelector('button#drive').addEventListener('click', async () => {
+    delfast.sendSetToDriveState(0x04);
+});
+document.querySelector('button#idle').addEventListener('click', async () => {
+    delfast.sendSetToDriveState(0x00);
+});
+document.querySelector('button#force').addEventListener('click', async () => {
+    delfast.sendSetToDriveState(0x01);
+});
+
+document.querySelector('button#read_status').addEventListener('click', async () => {
+    const v = await delfast.readStatus();
+    console.log("Status", v);
 });
 
 document.querySelector('button#disconnect').addEventListener('click', async () => {
@@ -65,10 +98,13 @@ function set_state(cond, id)
 }
 
 function handleMeasurement(measurement) {
-    // console.log("handleMeasurement()", measurement);
-    measurement.addEventListener('characteristicvaluechanged', event => {
-        // console.log("characteristicvaluechanged", event);
-        const state = delfast.parseValue(event.target.value);
+    console.log("handleMeasurement()", measurement);
+    measurement.addEventListener('characteristicvaluechanged', async (event) => {
+        if(event.target.value.byteLength != 4) return;
+        console.log("notify STATUS change", event.target.value);
+        const v = await delfast.readStatus();
+        const state = delfast.parseValue(v);
+        console.log("status = ", state);
         const inputs = state.odometer;
         // Debug inputs
         set_state(inputs & (1 << BT_INPUT_STATE_HORN), "horn");
