@@ -17,6 +17,11 @@ export default defineConfig({
     plugins: [
         VitePWA({
             registerType: 'autoUpdate',
+            // registerType: 'prompt',
+            workbox: {
+              cleanupOutdatedCaches: true,
+            //   sourcemap: true
+            }
 /*            strategies: 'injectManifest',
             workbox: {
                 cleanupOutdatedCaches: false,

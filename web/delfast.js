@@ -3,6 +3,8 @@ import Crc32 from './crc32';
 const VERSION = 0xA0;
 const CMD_GET_SESSION_KEY = 0x80;
 const CMD_SET_DRIVE_MODE = 0x90;
+const CMD_SET_LIMITS = 0x91;
+const CMD_SEARCH_BIKE = 0x92;
 
 
 // Test security data.
@@ -28,6 +30,7 @@ export default class Delfast {
         this.device = null;
         this.server = null;
         this._characteristics = new Map();
+        this._secured = false;
     }
 
 
@@ -102,7 +105,13 @@ export default class Delfast {
             speed: v.getUint8(6),
             power: v.getUint8(7),
             odometer: v.getUint8(8) + v.getUint8(9)*256 + v.getUint8(10)*256*256 + v.getUint8(11)*256*256*256,
-            auth_tag: new DataView(v.buffer, 12),
+            drive_mode: {
+                speed_limit: v.getUint8(12) & 0x03,
+                pas: v.getUint8(12) & (1 << 2),
+                throttle: v.getUint8(12) & (1 << 3),
+            },
+            change_cycles: v.getUint8(13) + v.getUint8(14)*256 + v.getUint8(15)*256*256 + v.getUint8(16)*256*256*256,
+            auth_tag: new DataView(v.buffer, 17),
             // auth_tag: [],
         };
         // const state = value.getUint32(0, /*littleEndian=*/true)
@@ -191,7 +200,6 @@ export default class Delfast {
     }
 
     sendSetToDriveState(flags) {
-        console.log("Send: setToForce");
         const buffer = new ArrayBuffer(23);
         const view = new DataView(buffer);
         view.setInt8(0, VERSION);               // version
@@ -208,6 +216,53 @@ export default class Delfast {
         new Uint8Array(buffer).set(auth_tag, 7);
 
         this.writeCommand(buffer);
+    }
+
+    // Керування режимами їзди
+    setDriveModes(flags) {
+        const buffer = new ArrayBuffer(23);
+        const view = new DataView(buffer);
+        view.setInt8(0, VERSION);               // version
+        view.setInt8(1, CMD_SET_LIMITS);        // type
+        view.setInt8(2, IDX);                   // key_idx
+        // const flags = 4;                     // 1 сигналізація включена  2 autolock   4 двигун
+        view.setInt8(3, flags);                 // flags
+
+        // FAKE
+        let auth_tag = new Uint8Array(
+            [0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,
+                0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,]
+        );
+        new Uint8Array(buffer).set(auth_tag, 7);
+
+        this.writeCommand(buffer);
+    }
+
+
+    searchBike(flags) {
+        const buffer = new ArrayBuffer(23);
+        const view = new DataView(buffer);
+        view.setInt8(0, VERSION);               // version
+        view.setInt8(1, CMD_SEARCH_BIKE);       // type
+        view.setInt8(2, IDX);                   // key_idx
+        // const flags = 4;                     // 1 сигналізація включена  2 autolock   4 двигун
+        view.setInt8(3, flags);                 // flags
+
+        // FAKE
+        let auth_tag = new Uint8Array(
+            [0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,
+                0x64, 0x65, 0x6c, 0x66, 0x61, 0x73, 0x74, 0x62,]
+        );
+        new Uint8Array(buffer).set(auth_tag, 7);
+
+        this.writeCommand(buffer);
+    }
+
+
+    async readManufacturername () {
+      const service = await this.device.gatt.getPrimaryService("device_information");
+      const characteristic = await service.getCharacteristic("manufacturer_name_string");
+      return characteristic.readValue();
     }
 
     // Private

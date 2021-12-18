@@ -4,17 +4,23 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <title>Delfast App</title>
   </head>
   <body>
     <div id="app">
         <h1>Delfast bike PC</h1>
         <button type="button" name="button" id="connect">Connect</button>
         <button type="button" name="button" id="disconnect" style="display: none">Disconnect</button>
+        <button type="button" name="button" id="secured"><i class="fas fa-lock-open" style="color: darkred; padding: 0 10px"></i></button>
         <div id="conn_state">Not connected</div>
 
         <div class="control" style="display: none">
             <!-- <button id="test">Test</button> -->
+            <div class="controls">
+                <div class="">Speed: <span id="speed"></span> mph</div>
+                <div class="">Odometer: <span id="odometer"></span> miles</div>
+                <div class="">Battery: <span id="battery"></span>%</div>
+            </div>
             <div class="state">
                 <div class="inputs">
                     <div id="in_horn"><i class="fas fa-bullhorn"></i></div>
@@ -23,10 +29,10 @@
                     <div id="in_turn_r"><i class="fas fa-arrow-circle-right"></i></div>
                     <div id="in_h_beam">H <i class="fas fa-lightbulb"></i></div>
                     <div id="in_l_beam">L <i class="fas fa-lightbulb"></i></div>
+                    <!-- <div id="in_l_speed">L Speed</div>
                     <div id="in_h_speed">H Speed</div>
-                    <div id="in_l_speed">L Speed</div>
                     <div id="in_throttle">Throttle</div>
-                    <div id="in_pas">PAS</div>
+                    <div id="in_pas">PAS</div> -->
 
                     <!-- // Not a inputs, but place here while a better time -->
                     <div id="in_panic">Panic</div>
@@ -40,12 +46,30 @@
                 <button type="button" name="button" id="idle"><i class="fas fa-parking fa-5x"></i></button>
                 <button type="button" name="button" id="force"><i class="fab fa-ups fa-5x"></i></button>
             </div>
+            <div class="controls">
+                <button type="button" name="button" id="search_s"><i class="fas fa-search fa-3x"></i><i class="fas fa-volume-up"></i></button>
+                <button type="button" name="button" id="search_l"><i class="fas fa-search fa-3x"></i><i class="far fa-lightbulb"></i></button>
+                <button type="button" name="button" id="search_sl"><i class="fas fa-search fa-3x"></i><span class="col"><i class="fas fa-volume-up"></i><i class="far fa-lightbulb"></i></span></button>
+            </div>
+            <div class="controls">
+                    <label for="pas">PAS</label><input type="checkbox" id="pas" name="pas" checked>
+                    <label for="throttle">Throttle</label><input type="checkbox" id="throttle" name="throttle" checked>
+
+                    <label for="speed_limit">Speed Limit:</label>
+                    <select name="speed_limit" id="speed_limit"> <!--Supplement an id here instead of using 'name'-->
+                        <option value="0" selected>No Limit</option>
+                        <option value="1">22 mph</option>
+                        <option value="2">28 mph</option>
+                    </select>
+            </div>
 
             <div style="margin-top: 100px;">
                 <p>Debug functions. Do not touch please:</p>
                 <button type="button" name="button" id="get_session_key">Get session_key</button>
                 <button type="button" name="button" id="read_status">Read status</button>
+                <button type="button" name="button" id="read_manufacture_name">Manufacture name</button>
             </div>
+
 
 
         </div>

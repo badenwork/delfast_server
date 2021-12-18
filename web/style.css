@@ -55,9 +55,20 @@ button {
     }
 
 .controls {
-    margin-top: 40px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-evenly;
+    gap: 20px;
+}
+
+button[id ^= "search"] {
+    display: flex;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
 }
 
 .debug {
