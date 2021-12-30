@@ -69,14 +69,39 @@ document.querySelector('button#get_session_key').addEventListener('click', async
 });
 
 document.querySelector('button#drive').addEventListener('click', async () => {
-    delfast.sendSetToDriveState(0x04);
+    let autolock = 0;
+    if(delfast.status.status) {
+        if(delfast.status.status.autolock) autolock = 0x02;
+    }
+    delfast.sendSetToDriveState(0x04 | autolock);
 });
 document.querySelector('button#idle').addEventListener('click', async () => {
-    delfast.sendSetToDriveState(0x00);
+    let autolock = 0;
+    if(delfast.status.status) {
+        if(delfast.status.status.autolock) autolock = 0x02;
+    }
+    delfast.sendSetToDriveState(0x00 | autolock);
 });
 document.querySelector('button#force').addEventListener('click', async () => {
-    delfast.sendSetToDriveState(0x01);
+    let autolock = 0;
+    if(delfast.status.status) {
+        if(delfast.status.status.autolock) autolock = 0x02;
+    }
+    delfast.sendSetToDriveState(0x01 | autolock);
 });
+
+const input_autolock = document.querySelector('input#autolock');
+input_autolock.addEventListener('change', () => {
+    let drive_state = 0;
+    if(delfast.status.status) {
+        if(delfast.status.status.drive) drive_state |= 0x04;
+        if(delfast.status.status.guard) drive_state |= 0x01;
+    }
+    if(input_autolock.checked) delfast.sendSetToDriveState(0x02 | drive_state);
+    else delfast.sendSetToDriveState(0x00 | drive_state);
+    // autolock.value
+});
+
 
 document.querySelector('button#search_s').addEventListener('click', async () => {
     delfast.searchBike(0x01);
@@ -124,7 +149,6 @@ input_pas.addEventListener('change', changer);
 input_throttle.addEventListener('change', changer);
 select_speed_limit.addEventListener('change', changer);
 
-
 /*
 (async () => {
     const devices = await delfast.loadPaired();
@@ -158,51 +182,67 @@ function set_state(cond, id)
 function handleMeasurement(measurement) {
     console.log("handleMeasurement()", measurement);
     measurement.addEventListener('characteristicvaluechanged', async (event) => {
-        if(event.target.value.byteLength != 4) return;
-        console.log("notify STATUS change", event.target.value);
-        const v = await delfast.readStatus();
-        const state = delfast.parseValue(v);
-        console.log("status = ", state);
+        const v = event.target.value;
+        if(v.byteLength > 20) {    // Long
+            // Read full value. Parse here or maybe move to readValue promice resolve (see below)
+            const state = delfast.parseLongValue(v);
+            console.log("long state = ", state);
 
-        // TODO: Debug only
-        const inputs = state.odometer;
-        // Debug inputs
-        set_state(inputs & (1 << BT_INPUT_STATE_HORN), "horn");
-        set_state(inputs & (1 << BT_INPUT_STATE_BREAK), "break");
-        set_state(inputs & (1 << BT_INPUT_STATE_TURN_L), "turn_l");
-        set_state(inputs & (1 << BT_INPUT_STATE_TURN_R), "turn_r");
-        set_state(inputs & (1 << BT_INPUT_STATE_H_BEAM), "h_beam");
-        set_state(inputs & (1 << BT_INPUT_STATE_L_BEAM), "l_beam");
-        // set_state(inputs & (1 << BT_INPUT_STATE_L_SPEED), "l_speed");
-        // set_state(inputs & (1 << BT_INPUT_STATE_H_SPEED), "h_speed");
-        // set_state(inputs & (1 << BT_INPUT_STATE_THROTTLE), "throttle");
-        // set_state(inputs & (1 << BT_INPUT_STATE_PAS), "pas");
+            set_state(state.status.panic, "panic");
+            set_state(state.status.drive, "drive");
+            set_state(state.status.guard, "guard");
+            // console.log("xyz", x, y, z);
+            // Log("X="+x+" Y="+y+" Z="+z);
+            // statusText.innerHTML = heartRateMeasurement.heartRate + ' &#x2764;';
+            // heartRates.push(heartRateMeasurement.heartRate);
+            // drawWaves();
 
-        // Not a inputs, but place here while a better time
-        set_state(state.status.panic, "panic");
-        set_state(state.status.drive, "drive");
-        set_state(state.status.guard, "guard");
-        // console.log("xyz", x, y, z);
-        // Log("X="+x+" Y="+y+" Z="+z);
-        // statusText.innerHTML = heartRateMeasurement.heartRate + ' &#x2764;';
-        // heartRates.push(heartRateMeasurement.heartRate);
-        // drawWaves();
+            autolock.checked = state.status.autolock;
 
-        input_pas.checked = state.drive_mode.pas;
-        input_throttle.checked = state.drive_mode.throttle;
-        // input_throttle.checked = inputs & (1 << BT_INPUT_STATE_THROTTLE);
+            input_pas.checked = state.drive_mode.pas;
+            input_throttle.checked = state.drive_mode.throttle;
+            // input_throttle.checked = inputs & (1 << BT_INPUT_STATE_THROTTLE);
 
-        const speed_bits = inputs & ((1 << BT_INPUT_STATE_L_SPEED) | (1 << BT_INPUT_STATE_H_SPEED));
+            switch(state.drive_mode.speed_limit) {
+                case 0: select_speed_limit.value = "0"; break;
+                case 1: select_speed_limit.value = "1"; break;
+                case 2: select_speed_limit.value = "2"; break;
+            }
 
-        switch(state.drive_mode.speed_limit) {
-            case 0: select_speed_limit.value = "0"; break;
-            case 1: select_speed_limit.value = "1"; break;
-            case 2: select_speed_limit.value = "2"; break;
+        } else {                                    // Short
+            // Fast chnange
+            const state = delfast.parseShortValue(v);
+            console.log("short state = ", state);
+
+            // TODO: Debug only
+            const inputs = state.power;
+            // Debug inputs
+            set_state(inputs & (1 << BT_INPUT_STATE_HORN), "horn");
+            set_state(inputs & (1 << BT_INPUT_STATE_BREAK), "break");
+            set_state(inputs & (1 << BT_INPUT_STATE_TURN_L), "turn_l");
+            set_state(inputs & (1 << BT_INPUT_STATE_TURN_R), "turn_r");
+            set_state(inputs & (1 << BT_INPUT_STATE_H_BEAM), "h_beam");
+            set_state(inputs & (1 << BT_INPUT_STATE_L_BEAM), "l_beam");
+
+            const speed_bits = inputs & ((1 << BT_INPUT_STATE_L_SPEED) | (1 << BT_INPUT_STATE_H_SPEED));
+
+            document.querySelector('span#speed').innerHTML = "" + state.speed;
+            document.querySelector('span#odometer').innerHTML = "" + (state.odometer / 100);
+            document.querySelector('span#battery').innerHTML = "" + (100 * state.power / 255).toFixed(1);
+
+            // const state = delfast.parseValue(v);
+            // const v = await delfast.readStatus();
+
+            if(state.flag == 1) {
+                delfast.readStatus();
+                // TODO: We can use promice for parse answer here
+                // const v = await delfast.readStatus();
+                // const state = delfast.parseLongValue(v);
+            }
+
         }
+        return;
 
-        document.querySelector('span#speed').innerHTML = "" + state.speed;
-        document.querySelector('span#odometer').innerHTML = "" + state.odometer;
-        document.querySelector('span#battery').innerHTML = "" + (100 * state.power / 255).toFixed(1);
 
         // inputs & (1 << BT_INPUT_STATE_L_SPEED)
     });

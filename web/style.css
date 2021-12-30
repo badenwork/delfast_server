@@ -60,6 +60,7 @@ button {
     display: flex;
     justify-content: space-evenly;
     gap: 20px;
+    align-items: flex-end;
 }
 
 button[id ^= "search"] {
@@ -69,6 +70,14 @@ button[id ^= "search"] {
 .col {
     display: flex;
     flex-direction: column;
+}
+
+
+span#speed {
+    font-size: 4em;
+}
+span#odometer {
+    font-size: 2em;
 }
 
 .debug {

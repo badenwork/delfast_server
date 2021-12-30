@@ -11,6 +11,15 @@ const CMD_SEARCH_BIKE = 0x92;
 const test_cc = "addb2c0ad42ec3cf20dadd52065a4f70bfec4233ffd0da682836285fdce93119";
 const IDX = 123;
 
+
+async function generateKey() {
+  return await crypto.subtle.generateKey({
+    "name":"AES-GCM",
+    "length":256
+  }, true, ['encrypt','decrypt']);
+}
+
+
 export default class Delfast {
     // super();
     constructor() {
@@ -31,6 +40,25 @@ export default class Delfast {
         this.server = null;
         this._characteristics = new Map();
         this._secured = false;
+        this.status = 0;
+
+        this.algorithm = { name: 'AES-GCM', iv };
+        this.key = await crypto.subtle.importKey('jwk', jwk, {
+            "name":"AES-GCM"
+          }, false, ['encrypt','decrypt']);
+
+        // this.key = await crypto.subtle.deriveKey(
+        //       {
+        //         name: "PBKDF2",
+        //         salt: salt,
+        //         iterations: 250000,
+        //         hash: "SHA-256",
+        //       },
+        //       keyMaterial,
+        //       { name: "AES-GCM", length: 256 },
+        //       false,
+        //       ["encrypt", "decrypt"]
+        //     );
     }
 
 
@@ -87,33 +115,47 @@ export default class Delfast {
     stopNotificationsDebug() {
       return this._stopNotifications(this.CHARACTERISTIC_DEBUG);
     }
-    parseValue(value) {
+    parseShortValue(value) {
+        const v = value.buffer ? value : new DataView(value);
+        console.log("parseValue", v);
+        return {
+            flag: v.getUint8(1),
+            speed: v.getUint8(5),
+            power: v.getUint8(6),
+            odometer: v.getUint8(10) + v.getUint8(9)*256 + v.getUint8(8)*256*256 + v.getUint8(7)*256*256*256,
+        };
+    }
+    parseLongValue(value) {
         // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
         const v = value.buffer ? value : new DataView(value);
         console.log("parseValue", v);
-        const status = v.getUint8(5);
-        return {
+        const status_value = v.getUint8(5);
+        const status = {
             version: v.getUint8(0),
             counter: v.getUint8(1) + v.getUint8(2)*256 + v.getUint8(3)*256*256 + v.getUint8(4)*256*256*256,
             status: {
-                charge: status & (1 << 0),
-                drive: status & (1 << 1),
-                block: status & (1 << 2),
-                guard: status & (1 << 3),
-                panic: status & (1 << 4),
+                charge: status_value & (1 << 0),
+                drive: status_value & (1 << 1),
+                block: status_value & (1 << 2),
+                guard: status_value & (1 << 3),
+                panic: status_value & (1 << 4),
+                autolock: status_value & (1 << 5),
+                battery: status_value & (1 << 6),
             },
             speed: v.getUint8(6),
             power: v.getUint8(7),
-            odometer: v.getUint8(8) + v.getUint8(9)*256 + v.getUint8(10)*256*256 + v.getUint8(11)*256*256*256,
+            odometer: v.getUint8(11) + v.getUint8(10)*256 + v.getUint8(9)*256*256 + v.getUint8(8)*256*256*256,
             drive_mode: {
                 speed_limit: v.getUint8(12) & 0x03,
                 pas: v.getUint8(12) & (1 << 2),
                 throttle: v.getUint8(12) & (1 << 3),
             },
-            change_cycles: v.getUint8(13) + v.getUint8(14)*256 + v.getUint8(15)*256*256 + v.getUint8(16)*256*256*256,
+            change_cycles: v.getUint8(16) + v.getUint8(15)*256 + v.getUint8(14)*256*256 + v.getUint8(13)*256*256*256,
             auth_tag: new DataView(v.buffer, 17),
             // auth_tag: [],
         };
+        this.status = status;
+        return status;
         // const state = value.getUint32(0, /*littleEndian=*/true)
         // const x = value.getUint16(0, /*littleEndian=*/true)
         // const y = value.getUint16(2, /*littleEndian=*/true)

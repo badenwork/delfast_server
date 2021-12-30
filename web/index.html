@@ -54,12 +54,13 @@
             <div class="controls">
                     <label for="pas">PAS</label><input type="checkbox" id="pas" name="pas" checked>
                     <label for="throttle">Throttle</label><input type="checkbox" id="throttle" name="throttle" checked>
+                    <label for="autolock">Autolock</label><input type="checkbox" id="autolock" name="autolock" checked>
 
                     <label for="speed_limit">Speed Limit:</label>
                     <select name="speed_limit" id="speed_limit"> <!--Supplement an id here instead of using 'name'-->
-                        <option value="0" selected>No Limit</option>
-                        <option value="1">22 mph</option>
-                        <option value="2">28 mph</option>
+                        <option value="0" selected>No Limit</option> <!-- High Speed -->
+                        <option value="1">20 mph</option>            <!-- Low Speed -->
+                        <option value="2">25 mph</option>            <!-- both off (TODO: must be disabled in current version)-->
                     </select>
             </div>
 
